@@ -8,6 +8,8 @@ const sample: CompleteSelections = {
 	caseColor: 'black',
 	keycapColor: 'white',
 	keycapProfile: 'cherry',
+	keycapLink: 'https://example.com/keycaps/set',
+	keycapLook: 'cute pastel',
 	caseMaterial: 'aluminum',
 	hotSwap: 'yes',
 	connectivity: 'wired',
@@ -18,14 +20,14 @@ const sample: CompleteSelections = {
 };
 
 function valid(overrides: Record<string, unknown> = {}): string {
-	return JSON.stringify({ version: 1, ...sample, ...overrides });
+	return JSON.stringify({ version: 2, ...sample, ...overrides });
 }
 
 describe('exportConfig', () => {
 	it('writes version first, then fields in FIELD_ORDER', () => {
 		const parsed = JSON.parse(exportConfig(sample));
 		expect(Object.keys(parsed)).toEqual(['version', ...FIELD_ORDER]);
-		expect(parsed.version).toBe(1);
+		expect(parsed.version).toBe(2);
 	});
 });
 
@@ -67,7 +69,7 @@ describe('parseConfig', () => {
 	});
 
 	it('rejects a newer version and mentions version', () => {
-		const result = parseConfig(valid({ version: 2 }));
+		const result = parseConfig(valid({ version: 3 }));
 		expect(result.ok).toBe(false);
 		if (!result.ok) expect(result.error).toMatch(/version/i);
 	});
@@ -82,5 +84,60 @@ describe('parseConfig', () => {
 		const result = parseConfig(valid({ layout: '42' }));
 		expect(result.ok).toBe(false);
 		if (!result.ok) expect(result.error).toContain('layout');
+	});
+	describe('keycap link and look', () => {
+		it('round-trips an empty link and look', () => {
+			const blank = { ...sample, keycapLink: '', keycapLook: '' };
+			const text = exportConfig(blank);
+			const result = parseConfig(text);
+			expect(result.ok).toBe(true);
+			if (result.ok) expect(exportConfig(result.selections)).toBe(text);
+		});
+
+		it.each([
+			['a javascript: link', 'javascript:alert(1)'],
+			['an ftp link', 'ftp://example.com/x'],
+			['plain text', 'cute keycaps'],
+			['a non-string', 5]
+		])('rejects %s as keycapLink and names the field', (_name, value) => {
+			const result = parseConfig(valid({ keycapLink: value }));
+			expect(result.ok).toBe(false);
+			if (!result.ok) expect(result.error).toContain('keycapLink');
+		});
+
+		it('rejects a non-string keycapLook', () => {
+			const result = parseConfig(valid({ keycapLook: 5 }));
+			expect(result.ok).toBe(false);
+		});
+
+		it('rejects a version 2 file that is missing the new fields', () => {
+			const { keycapLink: _a, keycapLook: _b, ...rest } = JSON.parse(valid());
+			expect(parseConfig(JSON.stringify(rest)).ok).toBe(false);
+		});
+	});
+
+	describe('version 1 files', () => {
+		function v1(overrides: Record<string, unknown> = {}): string {
+			const { keycapLink: _a, keycapLook: _b, ...rest } = sample;
+			return JSON.stringify({ version: 1, ...rest, ...overrides });
+		}
+
+		it('still import, with a blank link and look', () => {
+			const result = parseConfig(v1());
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.selections.keycapLink).toBe('');
+				expect(result.selections.keycapLook).toBe('');
+				expect(result.selections.layout).toBe('65');
+			}
+		});
+
+		it('are rejected if they carry the version 2 fields', () => {
+			expect(parseConfig(v1({ keycapLink: 'https://example.com' })).ok).toBe(false);
+		});
+
+		it('are still checked for unknown option values', () => {
+			expect(parseConfig(v1({ layout: '42' })).ok).toBe(false);
+		});
 	});
 });

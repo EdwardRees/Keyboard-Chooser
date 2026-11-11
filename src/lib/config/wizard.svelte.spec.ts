@@ -8,6 +8,8 @@ const sample: CompleteSelections = {
 	caseColor: 'black',
 	keycapColor: 'white',
 	keycapProfile: 'cherry',
+	keycapLink: '',
+	keycapLook: '',
 	caseMaterial: 'aluminum',
 	hotSwap: 'yes',
 	connectivity: 'wired',

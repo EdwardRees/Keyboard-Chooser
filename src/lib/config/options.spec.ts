@@ -59,10 +59,12 @@ describe('emptySelections', () => {
 		expect(s.hotSwap).toBe('unsure');
 		expect(s.budget).toBe('unsure');
 		expect(s.notes).toBe('');
+		expect(s.keycapLink).toBe('');
+		expect(s.keycapLook).toBe('');
 	});
 
-	it('has a FIELD_ORDER of 12 real keys', () => {
-		expect(FIELD_ORDER).toHaveLength(12);
+	it('has a FIELD_ORDER of 14 real keys', () => {
+		expect(FIELD_ORDER).toHaveLength(14);
 		for (const k of FIELD_ORDER) expect(emptySelections()).toHaveProperty(k);
 	});
 });

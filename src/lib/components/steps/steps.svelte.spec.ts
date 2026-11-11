@@ -66,4 +66,52 @@ describe('KeycapsStep', () => {
 		expect(wizard.selections.keycapProfile).toBe('sa');
 		expect(wizard.selections.keycapColor).toBe('cream');
 	});
+	it('saves a valid keycap set link', async () => {
+		const wizard = new Wizard();
+		render(KeycapsStep, { wizard });
+		await page.getByLabelText('Link to a keycap set you like').fill('https://example.com/set');
+		expect(wizard.selections.keycapLink).toBe('https://example.com/set');
+	});
+
+	it('trims whitespace around the link', async () => {
+		const wizard = new Wizard();
+		render(KeycapsStep, { wizard });
+		await page.getByLabelText('Link to a keycap set you like').fill('  https://example.com/set  ');
+		expect(wizard.selections.keycapLink).toBe('https://example.com/set');
+	});
+
+	it('refuses an unsafe link, shows a message and saves nothing', async () => {
+		const wizard = new Wizard();
+		render(KeycapsStep, { wizard });
+		await page.getByLabelText('Link to a keycap set you like').fill('javascript:alert(1)');
+		await expect.element(page.getByRole('alert')).toHaveTextContent('starting with https://');
+		expect(wizard.selections.keycapLink).toBe('');
+	});
+
+	it('clears the saved link and the message when the box is emptied', async () => {
+		const wizard = new Wizard();
+		render(KeycapsStep, { wizard });
+		const box = page.getByLabelText('Link to a keycap set you like');
+		await box.fill('https://example.com/set');
+		await box.fill('nonsense');
+		await box.fill('');
+		expect(wizard.selections.keycapLink).toBe('');
+		expect(page.getByRole('alert').elements()).toHaveLength(0);
+	});
+
+	it('shows a link that was imported earlier', async () => {
+		const wizard = new Wizard();
+		wizard.selections.keycapLink = 'https://example.com/set';
+		render(KeycapsStep, { wizard });
+		await expect
+			.element(page.getByLabelText('Link to a keycap set you like'))
+			.toHaveValue('https://example.com/set');
+	});
+
+	it('saves the description of the look', async () => {
+		const wizard = new Wizard();
+		render(KeycapsStep, { wizard });
+		await page.getByLabelText('Describe the look you want').fill('cute and pastel');
+		expect(wizard.selections.keycapLook).toBe('cute and pastel');
+	});
 });

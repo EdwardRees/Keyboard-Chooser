@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { OPTIONS, type Option } from '../../config/options';
 	import { exportConfig } from '../../config/serialize';
+	import { isWebAddress } from '../../config/link';
 	import { downloadText } from '../../download';
 	import ImportButton from '../ImportButton.svelte';
 	import type { Wizard } from '../../config/wizard.svelte';
@@ -59,6 +60,27 @@
 			</dd>
 		</div>
 	{/each}
+	<div class="flex items-center justify-between gap-4 p-3">
+		<dt class="text-gray-600">Keycap set link</dt>
+		<dd class="min-w-0 font-semibold text-gray-900">
+			{#if wizard.selections.keycapLink && isWebAddress(wizard.selections.keycapLink)}
+				<a
+					href={wizard.selections.keycapLink}
+					target="_blank"
+					rel="noopener noreferrer"
+					class="break-all text-indigo-700 underline">{wizard.selections.keycapLink}</a
+				>
+			{:else}
+				None
+			{/if}
+		</dd>
+	</div>
+	<div class="flex items-center justify-between gap-4 p-3">
+		<dt class="text-gray-600">Look you want</dt>
+		<dd class="font-semibold whitespace-pre-line text-gray-900">
+			{wizard.selections.keycapLook || 'None'}
+		</dd>
+	</div>
 </dl>
 
 <label class="mb-6 block">

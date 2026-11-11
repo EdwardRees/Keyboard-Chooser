@@ -13,6 +13,8 @@ const sample: CompleteSelections = {
 	caseColor: 'black',
 	keycapColor: 'white',
 	keycapProfile: 'cherry',
+	keycapLink: 'https://example.com/keycaps/set',
+	keycapLook: 'cute pastel',
 	caseMaterial: 'aluminum',
 	hotSwap: 'yes',
 	connectivity: 'wired',
@@ -76,10 +78,30 @@ describe('SummaryStep', () => {
 	it('rejects a file with an unknown option value, shows an alert, and changes nothing', async () => {
 		const wizard = summaryWizard();
 		render(SummaryStep, { wizard });
-		const bad = JSON.stringify({ version: 1, ...sample, layout: '42' });
+		const bad = JSON.stringify({ version: 2, ...sample, layout: '42' });
 		const file = new File([bad], 'bad.json', { type: 'application/json' });
 		await userEvent.upload(page.getByLabelText('Import JSON'), file);
 		await expect.element(page.getByRole('alert')).toBeInTheDocument();
 		expect(wizard.selections).toEqual(sample);
+	});
+	it('shows the keycap link as a safe, new-tab link', async () => {
+		render(SummaryStep, { wizard: summaryWizard() });
+		const link = page.getByRole('link', { name: 'https://example.com/keycaps/set' });
+		await expect.element(link).toHaveAttribute('href', 'https://example.com/keycaps/set');
+		await expect.element(link).toHaveAttribute('target', '_blank');
+		await expect.element(link).toHaveAttribute('rel', 'noopener noreferrer');
+	});
+
+	it('shows the description of the look', async () => {
+		render(SummaryStep, { wizard: summaryWizard() });
+		await expect.element(page.getByText('cute pastel', { exact: true })).toBeInTheDocument();
+	});
+
+	it('says "None" when no link or look was given', async () => {
+		const wizard = new Wizard();
+		wizard.importConfig({ ...sample, keycapLink: '', keycapLook: '' });
+		render(SummaryStep, { wizard });
+		expect(page.getByRole('link').elements()).toHaveLength(0);
+		await expect.element(page.getByText('None', { exact: true }).first()).toBeInTheDocument();
 	});
 });

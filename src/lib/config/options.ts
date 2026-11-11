@@ -23,6 +23,10 @@ export interface CompleteSelections {
 	caseColor: CaseColor;
 	keycapColor: KeycapColor;
 	keycapProfile: KeycapProfile;
+	/** A link to a keycap set the client likes. Empty, or an http(s) address. */
+	keycapLink: string;
+	/** The client's own description of the look they want. */
+	keycapLook: string;
 	caseMaterial: CaseMaterial;
 	hotSwap: HotSwap;
 	connectivity: Connectivity;
@@ -204,6 +208,8 @@ export const FIELD_ORDER: (keyof CompleteSelections)[] = [
 	'caseColor',
 	'keycapColor',
 	'keycapProfile',
+	'keycapLink',
+	'keycapLook',
 	'caseMaterial',
 	'hotSwap',
 	'connectivity',
@@ -220,6 +226,8 @@ export function emptySelections(): Selections {
 		caseColor: null,
 		keycapColor: null,
 		keycapProfile: 'unsure',
+		keycapLink: '',
+		keycapLook: '',
 		caseMaterial: 'unsure',
 		hotSwap: 'unsure',
 		connectivity: 'unsure',
